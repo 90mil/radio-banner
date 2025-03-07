@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self' https:; script-src 'self' 'unsafe-inline' https:; style-src 'self' 'unsafe-inline' https:; media-src https://neunzugmilradio.out.airtime.pro;">
+    <title>90mil Radio Banner</title>
+    <!-- Google Font: Abel -->
+    <link href="https://fonts.googleapis.com/css2?family=Abel&display=swap" rel="stylesheet">
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <!-- jPlayer CSS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/jplayer/2.9.2/skin/blue.monday/jplayer.blue.monday.min.css"
+        rel="stylesheet" />
+    <!-- jPlayer JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jplayer/2.9.2/jplayer/jquery.jplayer.min.js"></script>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <div class="radio_banner">
+        <div class="jp-controls-container">
+            <div id="jquery_jplayer_1" class="jp-jplayer"></div>
+            <div id="jp_container_1" class="jp-controls" role="application" aria-label="media player">
+                <button class="jp-play" role="button" tabindex="0"></button>
+                <button class="jp-pause" role="button" tabindex="0" style="display:none;"></button>
+            </div>
+        </div>
+        <span style="margin-right: 10px; font-weight: bold;">90mil Radio</span>
+        <div class="scrolling-container" id="radio_banner">
+            Loading...
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+
+</html>
