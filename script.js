@@ -1,12 +1,12 @@
 // jPlayer setup
-$(document).ready(function(){
+$(document).ready(function () {
     $("#jquery_jplayer_1").jPlayer({
         ready: function () {
             $(this).jPlayer("setMedia", {
                 mp3: "https://neunzugmilradio.out.airtime.pro/neunzugmilradio_a"
             });
         },
-        error: function(event) {
+        error: function (event) {
             console.error("jPlayer error:", event.jPlayer.error);
             // Optionally show error in banner
             document.getElementById('radio_banner').innerHTML = 'Audio stream temporarily unavailable';
@@ -32,11 +32,11 @@ $(document).ready(function(){
         toggleDuration: true
     });
 
-    $('.jp-play').click(function() {
+    $('.jp-play').click(function () {
         $("#jquery_jplayer_1").jPlayer("play");
     });
 
-    $('.jp-pause').click(function() {
+    $('.jp-pause').click(function () {
         $("#jquery_jplayer_1").jPlayer("pause");
     });
 });
@@ -64,7 +64,7 @@ function roundToNearestHalfHourAndAdjustCET(date) {
 
 async function fetchLiveInfo() {
     try {
-        const response = await fetch(apiUrl, {cache: 'no-store'});
+        const response = await fetch(apiUrl, { cache: 'no-store' });
         if (!response.ok) {
             throw new Error(`HTTP error! Status: ${response.status}`);
         }
@@ -106,7 +106,7 @@ function updateBanner(data) {
             startTime = roundToNearestHalfHourAndAdjustCET(new Date(data.current.starts))
                 .toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
             endTime = roundToNearestHalfHourAndAdjustCET(new Date(data.current.ends))
-                .toLocaleTimeString('en-GB', {hour: '2-digit', minute: '2-digit' });
+                .toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
         } catch (e) {
             console.error('Error processing time information:', e);
         }
