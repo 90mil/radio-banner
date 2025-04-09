@@ -37,12 +37,13 @@ body {
     border-radius: 50%;
     background-color: white;
     display: flex;
-    justify-content: center;
+    justify-content: space-evenly;
     align-items: center;
     cursor: pointer;
     transition: background-color 0.3s, border-color 0.3s;
     position: relative;
     appearance: none;
+    padding: 0 4px;
 }
 
 .jp-play::before {
@@ -56,18 +57,11 @@ body {
 
 .jp-pause::before, .jp-pause::after {
     content: '';
-    position: absolute;
-    width: 2px;
-    height: 10px;
+    display: block;
+    width: 3px;
+    height: 8px;
     background-color: black;
-}
-
-.jp-pause::before {
-    left: 6px;
-}
-
-.jp-pause::after {
-    right: 6px;
+    margin: 0;
 }
 
 .jp-play:hover, .jp-pause:hover {

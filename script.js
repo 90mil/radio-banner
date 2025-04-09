@@ -45,8 +45,17 @@ $(document).ready(function () {
 const apiUrl = 'https://neunzugmilradio.airtime.pro/api/live-info';
 
 function roundToNearestHalfHourAndAdjustCET(date) {
-    date.setHours(date.getHours() + 1);  // Add 1 hour for CET adjustment
-    const minutes = date.getMinutes();
+    // Create a copy of the date to avoid modifying the original
+    const adjustedDate = new Date(date);
+    
+    // Get timezone offset in hours for the current date
+    // During summer time (DST) it will be 2, during winter time it will be 1
+    const cetOffset = adjustedDate.getTimezoneOffset() === -120 ? 2 : 1;
+    
+    // Add the correct offset
+    adjustedDate.setHours(adjustedDate.getHours() + cetOffset);
+    
+    const minutes = adjustedDate.getMinutes();
     let roundedMinutes;
 
     if (minutes < 15) {
@@ -55,11 +64,11 @@ function roundToNearestHalfHourAndAdjustCET(date) {
         roundedMinutes = 30;
     } else {
         roundedMinutes = 0;
-        date.setHours(date.getHours() + 1);
+        adjustedDate.setHours(adjustedDate.getHours() + 1);
     }
 
-    date.setMinutes(roundedMinutes, 0, 0);
-    return date;
+    adjustedDate.setMinutes(roundedMinutes, 0, 0);
+    return adjustedDate;
 }
 
 async function fetchLiveInfo() {
