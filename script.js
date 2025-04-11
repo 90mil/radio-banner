@@ -52,6 +52,19 @@ $(document).ready(function () {
 // Banner script
 const apiUrl = 'https://neunzugmilradio.airtime.pro/api/live-info';
 
+// Consolidate messages at the top level
+const transitionMessages = [
+    '.... warming up the valve amps ...',
+    '.... aligning the tape heads ...',
+    '.... stabilizing the vacuum tubes ...',
+    '.... checking signal path ...',
+    '.... adjusting input gain ...'
+];
+
+function getRandomMessage() {
+    return transitionMessages[Math.floor(Math.random() * transitionMessages.length)];
+}
+
 function roundToNearestHalfHourAndAdjustCET(date) {
     // Create a copy of the date to avoid modifying the original
     const adjustedDate = new Date(date);
@@ -89,7 +102,10 @@ async function fetchLiveInfo() {
         updateBanner(data);
     } catch (error) {
         console.error('Error fetching track information:', error);
-        document.getElementById('radio_banner').innerHTML = 'Error loading track information.';
+        const bannerText = getRandomMessage();
+        const padding = '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;';
+        const scrollingText = `<p class="scrolling-text">${bannerText} ${padding}</p><p class="scrolling-text">${bannerText} ${padding}</p><p class="scrolling-text">${bannerText} ${padding}</p>`;
+        document.getElementById('radio_banner').innerHTML = scrollingText;
     }
 }
 
@@ -130,10 +146,12 @@ function updateBanner(data) {
 
         bannerText = `<a style="font-weight:bold">${trackName}</a> - ${startTime} - ${endTime}`;
     } else {
-        bannerText = 'No information available.';
+        bannerText = getRandomMessage();
     }
 
-    const scrollingText = `<p class="scrolling-text">${bannerText} &nbsp;</p><p class="scrolling-text">${bannerText} &nbsp;</p><p class="scrolling-text">${bannerText} &nbsp;</p>`;
+    // Add more padding between repetitions for waiting messages
+    const padding = '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;';
+    const scrollingText = `<p class="scrolling-text">${bannerText} ${padding}</p><p class="scrolling-text">${bannerText} ${padding}</p><p class="scrolling-text">${bannerText} ${padding}</p>`;
     banner.innerHTML = scrollingText;
 }
 
