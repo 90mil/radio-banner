@@ -15,6 +15,11 @@ $(document).ready(function () {
             $(this).jPlayer("pauseOthers");
             $('.jp-play').hide();
             $('.jp-pause').show();
+
+            // Notify parent window to pause any playing shows
+            if (window.parent !== window) {
+                window.parent.postMessage('bannerPlaying', '*');
+            }
         },
         pause: function () {
             $('.jp-pause').hide();
@@ -47,14 +52,14 @@ const apiUrl = 'https://neunzugmilradio.airtime.pro/api/live-info';
 function roundToNearestHalfHourAndAdjustCET(date) {
     // Create a copy of the date to avoid modifying the original
     const adjustedDate = new Date(date);
-    
+
     // Get timezone offset in hours for the current date
     // During summer time (DST) it will be 2, during winter time it will be 1
     const cetOffset = adjustedDate.getTimezoneOffset() === -120 ? 2 : 1;
-    
+
     // Add the correct offset
     adjustedDate.setHours(adjustedDate.getHours() + cetOffset);
-    
+
     const minutes = adjustedDate.getMinutes();
     let roundedMinutes;
 
@@ -131,4 +136,11 @@ function updateBanner(data) {
 
 // Initial fetch and set interval for frequent updates
 fetchLiveInfo();
-setInterval(fetchLiveInfo, 300000); // Update every 5 minutes 
+setInterval(fetchLiveInfo, 300000); // Update every 5 minutes
+
+// Add message listener at the top level
+window.addEventListener('message', function (event) {
+    if (event.data === 'pause') {
+        $("#jquery_jplayer_1").jPlayer("pause");
+    }
+}); 
