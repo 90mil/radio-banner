@@ -120,7 +120,7 @@ body {
 
 .scrolling-text {
     display: inline-flex;
-    animation: loopText 90s linear infinite;
+    animation: loopText 120s linear infinite;
     will-change: transform;
     padding: 0 20px;
 }
