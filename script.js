@@ -106,7 +106,6 @@ async function fetchLiveInfo() {
             throw new Error(`HTTP error! Status: ${response.status}`);
         }
         const data = await response.json();
-        console.log('API Response:', data);
         updateBanner(data);
     } catch (error) {
         console.error('Error fetching track information:', error);
@@ -128,7 +127,6 @@ function updateBanner(data) {
     let bannerText = '';
 
     if (data.current && data.current.type === 'livestream') {
-        console.log('Livestream detected');
         if (data.currentShow && data.currentShow.length > 0) {
             const showName = data.currentShow[0].name || "No Show Name";
             bannerText = `<a style="font-weight:bold">${showName}</a> - <span class="live-text">LIVE</span>`;
@@ -136,18 +134,15 @@ function updateBanner(data) {
             bannerText = `Live Broadcast - <span class="live-text">LIVE</span>`;
         }
     } else if (data.current && data.current.type === 'track') {
-        console.log('Track detected:', data.currentShow);
         let displayText = "Unknown Track";
 
         if (data.current.name) {
             let showName = decodeHtmlEntities(data.current.name);
-            
-            // Remove "90mil Radio - " if present
+
             if (showName.startsWith("90mil Radio - ")) {
                 showName = showName.substring("90mil Radio - ".length);
             }
 
-            // Parse "Title hosted by Host" format
             if (showName.includes("hosted by")) {
                 const [titlePart, hostPart] = showName.split("hosted by").map(part => part.trim());
                 displayText = `<span style="font-weight:bold">${titlePart}</span><span class="dot">·</span><span style="font-style:italic">hosted by ${hostPart}</span>`;
@@ -180,7 +175,6 @@ function updateBanner(data) {
             <span>${bannerText}</span>
             <span>${bannerText}</span>
         </p>`;
-    console.log('Final banner HTML:', scrollingText);
     banner.innerHTML = scrollingText;
 }
 
