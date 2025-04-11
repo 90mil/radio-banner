@@ -33,35 +33,43 @@ body {
 .jp-play, .jp-pause {
     width: 20px;
     height: 20px;
-    border: 2px solid black;
+    border: 1px solid black;
     border-radius: 50%;
     background-color: white;
     display: flex;
-    justify-content: space-evenly;
+    justify-content: center;
     align-items: center;
     cursor: pointer;
     transition: background-color 0.3s, border-color 0.3s;
     position: relative;
     appearance: none;
-    padding: 0 4px;
+    padding: 0;
 }
 
 .jp-play::before {
     content: '';
     width: 0;
     height: 0;
-    border-left: 8px solid black;
-    border-top: 5px solid transparent;
-    border-bottom: 5px solid transparent;
+    border-left: 6px solid black;
+    border-top: 4px solid transparent;
+    border-bottom: 4px solid transparent;
+    margin-left: 2px;
 }
 
 .jp-pause::before, .jp-pause::after {
     content: '';
-    display: block;
-    width: 3px;
+    position: absolute;
+    width: 2px;
     height: 8px;
     background-color: black;
-    margin: 0;
+}
+
+.jp-pause::before {
+    left: 6px;
+}
+
+.jp-pause::after {
+    right: 6px;
 }
 
 .jp-play:hover, .jp-pause:hover {
