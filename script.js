@@ -92,6 +92,13 @@ function roundToNearestHalfHourAndAdjustCET(date) {
     return adjustedDate;
 }
 
+// Add this helper function
+function decodeHtmlEntities(text) {
+    const textarea = document.createElement('textarea');
+    textarea.innerHTML = text;
+    return textarea.value;
+}
+
 async function fetchLiveInfo() {
     try {
         const response = await fetch(apiUrl, { cache: 'no-store' });
@@ -133,8 +140,8 @@ function updateBanner(data) {
         let displayText = "Unknown Track";
 
         if (data.current.name) {
-            let showName = data.current.name;
-
+            let showName = decodeHtmlEntities(data.current.name);
+            
             // Remove "90mil Radio - " if present
             if (showName.startsWith("90mil Radio - ")) {
                 showName = showName.substring("90mil Radio - ".length);
