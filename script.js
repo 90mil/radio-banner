@@ -99,12 +99,19 @@ async function fetchLiveInfo() {
             throw new Error(`HTTP error! Status: ${response.status}`);
         }
         const data = await response.json();
+        console.log('API Response:', data);
         updateBanner(data);
     } catch (error) {
         console.error('Error fetching track information:', error);
         const bannerText = getRandomMessage();
-        const padding = '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;';
-        const scrollingText = `<p class="scrolling-text">${bannerText} ${padding}</p><p class="scrolling-text">${bannerText} ${padding}</p><p class="scrolling-text">${bannerText} ${padding}</p>`;
+        const scrollingText = `
+            <p class="scrolling-text">
+                <span>${bannerText}</span>
+                <span>${bannerText}</span>
+                <span>${bannerText}</span>
+                <span>${bannerText}</span>
+                <span>${bannerText}</span>
+            </p>`;
         document.getElementById('radio_banner').innerHTML = scrollingText;
     }
 }
@@ -114,6 +121,7 @@ function updateBanner(data) {
     let bannerText = '';
 
     if (data.current && data.current.type === 'livestream') {
+        console.log('Livestream detected');
         if (data.currentShow && data.currentShow.length > 0) {
             const showName = data.currentShow[0].name || "No Show Name";
             bannerText = `<a style="font-weight:bold">${showName}</a> - <span class="live-text">LIVE</span>`;
@@ -121,16 +129,24 @@ function updateBanner(data) {
             bannerText = `Live Broadcast - <span class="live-text">LIVE</span>`;
         }
     } else if (data.current && data.current.type === 'track') {
-        let trackName = "Unknown Track";
+        console.log('Track detected:', data.currentShow);
+        let displayText = "Unknown Track";
 
-        if (data.currentShow && data.currentShow.length > 0) {
-            if (data.currentShow[0].name === "90mil Radio") {
-                trackName = data.current.name || "Unknown Track";
-            } else {
-                trackName = data.currentShow[0].name || "Unknown Track";
+        if (data.current.name) {
+            let showName = data.current.name;
+
+            // Remove "90mil Radio - " if present
+            if (showName.startsWith("90mil Radio - ")) {
+                showName = showName.substring("90mil Radio - ".length);
             }
-        } else {
-            trackName = data.current.name || "Unknown Track";
+
+            // Parse "Title hosted by Host" format
+            if (showName.includes("hosted by")) {
+                const [titlePart, hostPart] = showName.split("hosted by").map(part => part.trim());
+                displayText = `<span style="font-weight:bold">${titlePart}</span><span class="dot">·</span><span style="font-style:italic">hosted by ${hostPart}</span>`;
+            } else {
+                displayText = `<span style="font-weight:bold">${showName}</span>`;
+            }
         }
 
         let startTime = "Unknown Start Time";
@@ -144,14 +160,20 @@ function updateBanner(data) {
             console.error('Error processing time information:', e);
         }
 
-        bannerText = `<a style="font-weight:bold">${trackName}</a> - ${startTime} - ${endTime}`;
+        bannerText = `${displayText}<span class="dot">·</span>${startTime}-${endTime}`;
     } else {
         bannerText = getRandomMessage();
     }
 
-    // Add more padding between repetitions for waiting messages
-    const padding = '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;';
-    const scrollingText = `<p class="scrolling-text">${bannerText} ${padding}</p><p class="scrolling-text">${bannerText} ${padding}</p><p class="scrolling-text">${bannerText} ${padding}</p>`;
+    const scrollingText = `
+        <p class="scrolling-text">
+            <span>${bannerText}</span>
+            <span>${bannerText}</span>
+            <span>${bannerText}</span>
+            <span>${bannerText}</span>
+            <span>${bannerText}</span>
+        </p>`;
+    console.log('Final banner HTML:', scrollingText);
     banner.innerHTML = scrollingText;
 }
 
