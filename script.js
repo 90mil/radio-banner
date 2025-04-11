@@ -18,7 +18,10 @@ $(document).ready(function () {
 
             // Notify parent window to pause any playing shows
             if (window.parent !== window) {
-                window.parent.postMessage('bannerPlaying', '*');
+                window.parent.postMessage(JSON.stringify({
+                    type: 'play',
+                    source: 'banner'
+                }), '*');
             }
         },
         pause: function () {
