@@ -119,21 +119,44 @@ body {
 }
 
 .scrolling-text {
-    margin-right: 50px;
-    display: inline-block;
-    animation: loopText 20s linear infinite;
-    /* Increased duration for smoother movement */
+    display: inline-flex;
+    animation: loopText 90s linear infinite;
     will-change: transform;
-    /* Optimize for animations */
+    padding: 0 20px;
+}
+
+/* The outer spans that contain each repetition */
+.scrolling-text>span {
+    padding-right: 150px;
+    /* Space between repetitions */
+    white-space: nowrap;
+}
+
+/* Center dot styling */
+.dot {
+    padding: 8px 8px !important;
+    font-weight: bold;
+    font-size: 16px;
+}
+
+.scrolling-text span * {
+    font-size: 14px;
+    /* Restore font size for children */
+}
+
+/* Add specific spacing for the separator spans */
+.separator {
+    margin: 0 4px;
+    /* Small space around dashes */
 }
 
 @keyframes loopText {
     0% {
-        transform: translateX(0%);
+        transform: translateX(5%);
     }
 
     100% {
-        transform: translateX(-100%);
+        transform: translateX(calc(-100% - 80px));
     }
 }
 
