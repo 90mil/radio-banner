@@ -161,7 +161,7 @@ function updateBanner(data) {
             console.error('Error processing time information:', e);
         }
 
-        bannerText = `${displayText}<span class="dot">·</span>${startTime}-${endTime}`;
+        bannerText = `${displayText}<span class="dot">·</span>${startTime} – ${endTime}`;
     } else {
         bannerText = getRandomMessage();
     }
