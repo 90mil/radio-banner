@@ -15,7 +15,7 @@ body {
     align-items: center;
     overflow: hidden;
     font-family: 'Abel', sans-serif;
-    font-size: 14px;
+    font-size: 12px;
 }
 
 .jp-controls-container {
@@ -120,14 +120,14 @@ body {
 
 .scrolling-text {
     display: inline-flex;
-    animation: loopText 120s linear infinite;
+    animation: loopText 180s linear infinite;
     will-change: transform;
     padding: 0 20px;
 }
 
 /* The outer spans that contain each repetition */
 .scrolling-text>span {
-    padding-right: 150px;
+    padding-right: 90px;
     /* Space between repetitions */
     white-space: nowrap;
 }
@@ -140,7 +140,7 @@ body {
 }
 
 .scrolling-text span * {
-    font-size: 14px;
+    font-size: 12px;
     /* Restore font size for children */
 }
 
@@ -156,7 +156,7 @@ body {
     }
 
     100% {
-        transform: translateX(calc(-100% - 80px));
+        transform: translateX(calc(-50% - 40px));
     }
 }
 

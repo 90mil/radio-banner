@@ -8,8 +8,7 @@ $(document).ready(function () {
         },
         error: function (event) {
             console.error("jPlayer error:", event.jPlayer.error);
-            // Optionally show error in banner
-            document.getElementById('radio_banner').innerHTML = 'Audio stream temporarily unavailable';
+            displayErrorMessage();
         },
         play: function () {
             $(this).jPlayer("pauseOthers");
@@ -99,6 +98,15 @@ function decodeHtmlEntities(text) {
     return textarea.value;
 }
 
+function displayErrorMessage() {
+    const bannerText = getRandomMessage();
+    const scrollingText = `
+        <p class="scrolling-text">
+            ${Array(12).fill(`<span>${bannerText}</span>`).join('\n            ')}
+        </p>`;
+    document.getElementById('radio_banner').innerHTML = scrollingText;
+}
+
 async function fetchLiveInfo() {
     try {
         const response = await fetch(apiUrl, { cache: 'no-store' });
@@ -109,16 +117,7 @@ async function fetchLiveInfo() {
         updateBanner(data);
     } catch (error) {
         console.error('Error fetching track information:', error);
-        const bannerText = getRandomMessage();
-        const scrollingText = `
-            <p class="scrolling-text">
-                <span>${bannerText}</span>
-                <span>${bannerText}</span>
-                <span>${bannerText}</span>
-                <span>${bannerText}</span>
-                <span>${bannerText}</span>
-            </p>`;
-        document.getElementById('radio_banner').innerHTML = scrollingText;
+        displayErrorMessage();
     }
 }
 
@@ -169,11 +168,7 @@ function updateBanner(data) {
 
     const scrollingText = `
         <p class="scrolling-text">
-            <span>${bannerText}</span>
-            <span>${bannerText}</span>
-            <span>${bannerText}</span>
-            <span>${bannerText}</span>
-            <span>${bannerText}</span>
+            ${Array(12).fill(`<span>${bannerText}</span>`).join('\n            ')}
         </p>`;
     banner.innerHTML = scrollingText;
 }
