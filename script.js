@@ -55,7 +55,7 @@ const apiUrl = 'https://neunzugmilradio.airtime.pro/api/live-info';
 const transitionMessages = [
     '.... warming up the valve amps ...',
     '.... aligning the tape heads ...',
-    '.... stabilizing the vacuum tubes ...',
+    '.... stabilizing vacuum tubes ...',
     '.... checking signal path ...',
     '.... adjusting input gain ...'
 ];
@@ -125,33 +125,27 @@ function updateBanner(data) {
     const banner = document.getElementById('radio_banner');
     let bannerText = '';
 
-    if (data.current && data.current.type === 'livestream') {
-        if (data.currentShow && data.currentShow.length > 0) {
-            const showName = data.currentShow[0].name || "No Show Name";
-            bannerText = `<a style="font-weight:bold">${showName}</a> - <span class="live-text">LIVE</span>`;
+    if (data.currentShow && data.currentShow.length > 0) {
+        let displayText = "---";
+        // Try to get track title from metadata first
+        const showName = data.current?.metadata?.track_title
+            ? decodeHtmlEntities(data.current.metadata.track_title)
+            : decodeHtmlEntities(data.currentShow[0].name);
+
+        if (showName.includes("hosted by")) {
+            const [titlePart, hostPart] = showName.split("hosted by").map(part => part.trim());
+            displayText = `<span style="font-weight:bold">${titlePart}</span><span class="dot">·</span><span style="font-style:italic">hosted by ${hostPart}</span>`;
         } else {
-            bannerText = `Live Broadcast - <span class="live-text">LIVE</span>`;
-        }
-    } else if (data.current && data.current.type === 'track') {
-        let displayText = "Unknown Track";
-
-        if (data.current.name) {
-            let showName = decodeHtmlEntities(data.current.name);
-
-            if (showName.startsWith("90mil Radio - ")) {
-                showName = showName.substring("90mil Radio - ".length);
-            }
-
-            if (showName.includes("hosted by")) {
-                const [titlePart, hostPart] = showName.split("hosted by").map(part => part.trim());
-                displayText = `<span style="font-weight:bold">${titlePart}</span><span class="dot">·</span><span style="font-style:italic">hosted by ${hostPart}</span>`;
-            } else {
-                displayText = `<span style="font-weight:bold">${showName}</span>`;
-            }
+            displayText = `<span style="font-weight:bold">${showName}</span>`;
         }
 
-        let startTime = "Unknown Start Time";
-        let endTime = "Unknown End Time";
+        // Add LIVE indicator if it's a livestream
+        if (data.current && data.current.type === 'livestream') {
+            displayText = `${displayText} <span class="live-text">LIVE</span>`;
+        }
+
+        let startTime = "--:--";
+        let endTime = "--:--";
         try {
             startTime = roundToNearestHalfHourAndAdjustCET(new Date(data.current.starts))
                 .toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
