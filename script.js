@@ -53,11 +53,9 @@ const apiUrl = 'https://neunzugmilradio.airtime.pro/api/live-info';
 
 // Consolidate messages at the top level
 const transitionMessages = [
-    '.... warming up the valve amps ...',
-    '.... aligning the tape heads ...',
-    '.... stabilizing vacuum tubes ...',
-    '.... checking signal path ...',
-    '.... adjusting input gain ...'
+    '... warming up the valve amps ...',
+    '... aligning the tape heads ...',
+    '... stabilizing vacuum tubes ...',
 ];
 
 function getRandomMessage() {
