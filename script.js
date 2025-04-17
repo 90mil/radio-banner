@@ -139,11 +139,6 @@ function updateBanner(data) {
             displayText = `<span style="font-weight:bold">${showName}</span>`;
         }
 
-        // Add LIVE indicator if it's a livestream
-        if (data.current && data.current.type === 'livestream') {
-            displayText = `${displayText} <span class="live-text">LIVE</span>`;
-        }
-
         let startTime = "--:--";
         let endTime = "--:--";
         try {
@@ -156,6 +151,12 @@ function updateBanner(data) {
         }
 
         bannerText = `${displayText}<span class="dot">·</span>${startTime} – ${endTime}`;
+
+        // Add LIVE indicator if it's a livestream
+        if (data.current && data.current.type === 'livestream') {
+            bannerText = `${bannerText}  <span class="live-text">LIVE</span>`;
+        }
+
     } else {
         bannerText = getRandomMessage();
     }
