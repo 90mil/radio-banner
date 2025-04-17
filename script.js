@@ -154,7 +154,7 @@ function updateBanner(data) {
 
         // Add LIVE indicator if it's a livestream
         if (data.current && data.current.type === 'livestream') {
-            bannerText = `${bannerText}  <span class="live-text">LIVE</span>`;
+            bannerText = `${bannerText} <span class="live-text">LIVE</span>`;
         }
 
     } else {
