@@ -126,9 +126,12 @@ function updateBanner(data) {
     if (data.currentShow && data.currentShow.length > 0) {
         let displayText = "---";
         // Try to get track title from metadata first
-        const showName = data.current?.metadata?.track_title
+        let showName = data.current?.metadata?.track_title
             ? decodeHtmlEntities(data.current.metadata.track_title)
             : decodeHtmlEntities(data.currentShow[0].name);
+
+        // Remove .mp3 extension if present
+        showName = showName.replace(/\.mp3$/, '');
 
         if (showName.includes("hosted by")) {
             const [titlePart, hostPart] = showName.split("hosted by").map(part => part.trim());
