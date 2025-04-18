@@ -127,8 +127,7 @@ body {
 
 /* The outer spans that contain each repetition */
 .scrolling-text>span {
-    padding-right: 90px;
-    /* Space between repetitions */
+    padding-right: 100px;
     white-space: nowrap;
 }
 
@@ -152,11 +151,12 @@ body {
 
 @keyframes loopText {
     0% {
-        transform: translateX(5%);
+        transform: translateX(0);
     }
 
     100% {
-        transform: translateX(calc(-50% - 40px));
+        transform: translateX(calc(-100% - 100px));
+        /* Move exactly one container width plus padding */
     }
 }
 
