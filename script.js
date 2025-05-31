@@ -20,17 +20,15 @@ function roundToNearestHalfHourAndAdjustCET(date) {
     return adjustedDate;
 }
 
-function getCurrentScheduledShow(data) {
-    const now = new Date();
-    const shows = data[getCurrentDayKey(now)] || [];
-    return shows.find(s => s.name !== '90mil Radio' &&
-        new Date(s.start_timestamp) <= now &&
-        new Date(s.end_timestamp) > now);
-}
-
 function formatShowInfo(title, start, end) {
     const startStr = roundToNearestHalfHourAndAdjustCET(new Date(start)).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
     const endStr = roundToNearestHalfHourAndAdjustCET(new Date(end)).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+    return `${title}<span class="dot">·</span>${startStr} – ${endStr}`;
+}
+
+function formatScheduleShowInfo(title, start, end) {
+    const startStr = new Date(start).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Berlin' });
+    const endStr = new Date(end).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Berlin' });
     return `${title}<span class="dot">·</span>${startStr} – ${endStr}`;
 }
 
@@ -50,21 +48,37 @@ function displayErrorMessage() {
     displayBanner(message);
 }
 
+function getCurrentScheduledShow(data) {
+    const now = new Date();
+    const shows = data[getCurrentDayKey(now)] || [];
+    return shows.find(s => s.name !== '90mil Radio' &&
+        new Date(s.start_timestamp) <= now &&
+        new Date(s.end_timestamp) > now);
+}
+
+function buildDisplayTitle(rawTitle) {
+    const title = decodeHtmlEntities(rawTitle).replace(/\.mp3$/, '');
+    if (title.includes("hosted by")) {
+        const [main, host] = title.split("hosted by").map(part => part.trim());
+        return `<span style="font-weight:bold">${main}</span><span class="dot">·</span><span style="font-style:italic">hosted by ${host}</span>`;
+    }
+    return `<span style="font-weight:bold">${title}</span>`;
+}
+
 async function fetchBannerInfo() {
     try {
+        // Step 1: Try schedule
         const weekRes = await fetch(bannerApiWeek, { cache: 'no-store' });
         if (weekRes.ok) {
             const weekData = await weekRes.json();
             const show = getCurrentScheduledShow(weekData);
             if (show) {
-                const title = decodeHtmlEntities(show.name).replace(/\.mp3$/, '');
-                let display = title.includes("hosted by")
-                    ? `<span style="font-weight:bold">${title.split("hosted by")[0].trim()}</span><span class="dot">·</span><span style="font-style:italic">hosted by ${title.split("hosted by")[1].trim()}</span>`
-                    : `<span style="font-weight:bold">${title}</span>`;
-                return displayBanner(formatShowInfo(display, show.start_timestamp, show.end_timestamp));
+                const displayTitle = buildDisplayTitle(show.name);
+                return displayBanner(formatScheduleShowInfo(displayTitle, show.start_timestamp, show.end_timestamp));
             }
         }
 
+        // Step 2: Try live-info
         const liveRes = await fetch(bannerApiLive, { cache: 'no-store' });
         if (liveRes.ok) {
             const data = await liveRes.json();
@@ -72,19 +86,13 @@ async function fetchBannerInfo() {
             const meta = data.current?.metadata;
 
             if (show?.name && show.name !== '90mil Radio') {
-                let title = decodeHtmlEntities(show.name).replace(/\.mp3$/, '');
-                let display = title.includes("hosted by")
-                    ? `<span style="font-weight:bold">${title.split("hosted by")[0].trim()}</span><span class="dot">·</span><span style="font-style:italic">hosted by ${title.split("hosted by")[1].trim()}</span>`
-                    : `<span style="font-weight:bold">${title}</span>`;
-                return displayBanner(formatShowInfo(display, data.current.starts, data.current.ends), data.current?.type === 'livestream');
+                const displayTitle = buildDisplayTitle(show.name);
+                return displayBanner(formatShowInfo(displayTitle, data.current.starts, data.current.ends), data.current?.type === 'livestream');
             }
 
             if (meta?.track_title) {
-                let title = decodeHtmlEntities(meta.track_title).replace(/\.mp3$/, '');
-                let display = title.includes("hosted by")
-                    ? `<span style="font-weight:bold">${title.split("hosted by")[0].trim()}</span><span class="dot">·</span><span style="font-style:italic">hosted by ${title.split("hosted by")[1].trim()}</span>`
-                    : `<span style="font-weight:bold">${title}</span>`;
-                return displayBanner(formatShowInfo(display, data.current.starts, data.current.ends));
+                const displayTitle = buildDisplayTitle(meta.track_title);
+                return displayBanner(formatShowInfo(displayTitle, data.current.starts, data.current.ends));
             }
         }
 
@@ -97,5 +105,5 @@ async function fetchBannerInfo() {
 
 document.addEventListener("DOMContentLoaded", () => {
     fetchBannerInfo();
-    setInterval(fetchBannerInfo, 300000);
+    setInterval(fetchBannerInfo, 300000); // every 5 minutes
 });
