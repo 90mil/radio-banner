@@ -1,3 +1,58 @@
+// jPlayer setup
+$(document).ready(function () {
+    $("#jquery_jplayer_1").jPlayer({
+        ready: function () {
+            $(this).jPlayer("setMedia", {
+                mp3: "https://neunzugmilradio.out.airtime.pro/neunzugmilradio_a"
+            });
+        },
+        error: function (event) {
+            console.error("jPlayer error:", event.jPlayer.error);
+            displayErrorMessage();
+        },
+        play: function () {
+            $(this).jPlayer("pauseOthers");
+            $('.jp-play').hide();
+            $('.jp-pause').show();
+
+            if (window.parent !== window) {
+                window.parent.postMessage(JSON.stringify({
+                    type: 'play',
+                    source: 'banner'
+                }), '*');
+            }
+        },
+        pause: function () {
+            $('.jp-pause').hide();
+            $('.jp-play').show();
+        },
+        swfPath: "/js",
+        supplied: "mp3",
+        cssSelectorAncestor: "#jp_container_1",
+        wmode: "window",
+        useStateClassSkin: true,
+        autoBlur: false,
+        smoothPlayBar: true,
+        keyEnabled: true,
+        remainingDuration: true,
+        toggleDuration: true
+    });
+
+    $('.jp-play').click(function () {
+        $("#jquery_jplayer_1").jPlayer("play");
+    });
+
+    $('.jp-pause').click(function () {
+        $("#jquery_jplayer_1").jPlayer("pause");
+    });
+});
+
+window.addEventListener('message', function (event) {
+    if (event.data === 'pause') {
+        $("#jquery_jplayer_1").jPlayer("pause");
+    }
+});
+
 const bannerApiWeek = 'https://neunzugmilradio.airtime.pro/api/week-info';
 const bannerApiLive = 'https://neunzugmilradio.airtime.pro/api/live-info';
 
