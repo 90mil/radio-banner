@@ -15,7 +15,6 @@ $(document).ready(function () {
             $('.jp-play').hide();
             $('.jp-pause').show();
 
-            // Notify parent window to pause any playing shows
             if (window.parent !== window) {
                 window.parent.postMessage(JSON.stringify({
                     type: 'play',
@@ -48,134 +47,118 @@ $(document).ready(function () {
     });
 });
 
-// Banner script
-const apiUrl = 'https://neunzugmilradio.airtime.pro/api/live-info';
-
-// Consolidate messages at the top level
-const transitionMessages = [
-    '... warming up the valve amps ...',
-    '... aligning the tape heads ...',
-    '... stabilizing vacuum tubes ...',
-];
-
-function getRandomMessage() {
-    return transitionMessages[Math.floor(Math.random() * transitionMessages.length)];
-}
-
-function roundToNearestHalfHourAndAdjustCET(date) {
-    // Create a copy of the date to avoid modifying the original
-    const adjustedDate = new Date(date);
-
-    // Get timezone offset in hours for the current date
-    // During summer time (DST) it will be 2, during winter time it will be 1
-    const cetOffset = adjustedDate.getTimezoneOffset() === -120 ? 2 : 1;
-
-    // Add the correct offset
-    adjustedDate.setHours(adjustedDate.getHours() + cetOffset);
-
-    const minutes = adjustedDate.getMinutes();
-    let roundedMinutes;
-
-    if (minutes < 15) {
-        roundedMinutes = 0;
-    } else if (minutes < 45) {
-        roundedMinutes = 30;
-    } else {
-        roundedMinutes = 0;
-        adjustedDate.setHours(adjustedDate.getHours() + 1);
+window.addEventListener('message', function (event) {
+    if (event.data === 'pause') {
+        $("#jquery_jplayer_1").jPlayer("pause");
     }
+});
 
-    adjustedDate.setMinutes(roundedMinutes, 0, 0);
-    return adjustedDate;
+const bannerApiWeek = 'https://neunzugmilradio.airtime.pro/api/week-info';
+const bannerApiLive = 'https://neunzugmilradio.airtime.pro/api/live-info';
+
+function getCurrentDayKey(date) {
+    return ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'][date.getDay()];
 }
 
-// Add this helper function
 function decodeHtmlEntities(text) {
     const textarea = document.createElement('textarea');
     textarea.innerHTML = text;
     return textarea.value;
 }
 
-function displayErrorMessage() {
-    const bannerText = getRandomMessage();
-    const scrollingText = `
-        <p class="scrolling-text">
-            ${Array(12).fill(`<span>${bannerText}</span>`).join('\n            ')}
-        </p>`;
-    document.getElementById('radio_banner').innerHTML = scrollingText;
+function roundToNearestHalfHourAndAdjustCET(date) {
+    const adjustedDate = new Date(date);
+    const cetOffset = adjustedDate.getTimezoneOffset() === -120 ? 2 : 1;
+    adjustedDate.setHours(adjustedDate.getHours() + cetOffset);
+    const m = adjustedDate.getMinutes();
+    adjustedDate.setMinutes(m < 15 ? 0 : m < 45 ? 30 : (adjustedDate.setHours(adjustedDate.getHours() + 1), 0), 0, 0);
+    return adjustedDate;
 }
 
-async function fetchLiveInfo() {
+function formatShowInfo(title, start, end) {
+    const startStr = roundToNearestHalfHourAndAdjustCET(new Date(start)).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+    const endStr = roundToNearestHalfHourAndAdjustCET(new Date(end)).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+    return `${title}<span class="dot">·</span>${startStr} – ${endStr}`;
+}
+
+function formatScheduleShowInfo(title, start, end) {
+    const startStr = new Date(start).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Berlin' });
+    const endStr = new Date(end).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Berlin' });
+    return `${title}<span class="dot">·</span>${startStr} – ${endStr}`;
+}
+
+function displayBanner(text, isLive = false) {
+    const bannerText = `${text}${isLive ? ' <span class="live-text">LIVE</span>' : ''}`;
+    const content = `<p class="scrolling-text">${Array(12).fill(`<span>${bannerText}</span>`).join('\n')}</p>`;
+    document.getElementById('radio_banner').innerHTML = content;
+}
+
+function displayErrorMessage() {
+    const fallback = [
+        '... warming up the valve amps ...',
+        '... aligning the tape heads ...',
+        '... stabilizing vacuum tubes ...'
+    ];
+    const message = fallback[Math.floor(Math.random() * fallback.length)];
+    displayBanner(message);
+}
+
+function getCurrentScheduledShow(data) {
+    const now = new Date();
+    const shows = data[getCurrentDayKey(now)] || [];
+    return shows.find(s => s.name !== '90mil Radio' &&
+        new Date(s.start_timestamp) <= now &&
+        new Date(s.end_timestamp) > now);
+}
+
+function buildDisplayTitle(rawTitle) {
+    const title = decodeHtmlEntities(rawTitle).replace(/\.mp3$/, '');
+    if (title.includes("hosted by")) {
+        const [main, host] = title.split("hosted by").map(part => part.trim());
+        return `<span style="font-weight:bold">${main}</span><span class="dot">·</span><span style="font-style:italic">hosted by ${host}</span>`;
+    }
+    return `<span style="font-weight:bold">${title}</span>`;
+}
+
+async function fetchBannerInfo() {
     try {
-        const response = await fetch(apiUrl, { cache: 'no-store' });
-        if (!response.ok) {
-            throw new Error(`HTTP error! Status: ${response.status}`);
+        // Step 1: Try schedule
+        const weekRes = await fetch(bannerApiWeek, { cache: 'no-store' });
+        if (weekRes.ok) {
+            const weekData = await weekRes.json();
+            const show = getCurrentScheduledShow(weekData);
+            if (show) {
+                const displayTitle = buildDisplayTitle(show.name);
+                return displayBanner(formatScheduleShowInfo(displayTitle, show.start_timestamp, show.end_timestamp));
+            }
         }
-        const data = await response.json();
-        updateBanner(data);
-    } catch (error) {
-        console.error('Error fetching track information:', error);
+
+        // Step 2: Try live-info
+        const liveRes = await fetch(bannerApiLive, { cache: 'no-store' });
+        if (liveRes.ok) {
+            const data = await liveRes.json();
+            const show = data.currentShow?.[0];
+            const meta = data.current?.metadata;
+
+            if (show?.name && show.name !== '90mil Radio') {
+                const displayTitle = buildDisplayTitle(show.name);
+                return displayBanner(formatShowInfo(displayTitle, data.current.starts, data.current.ends), data.current?.type === 'livestream');
+            }
+
+            if (meta?.track_title) {
+                const displayTitle = buildDisplayTitle(meta.track_title);
+                return displayBanner(formatShowInfo(displayTitle, data.current.starts, data.current.ends));
+            }
+        }
+
+        displayErrorMessage();
+    } catch (err) {
+        console.error("Banner fetch error:", err);
         displayErrorMessage();
     }
 }
 
-function updateBanner(data) {
-    const banner = document.getElementById('radio_banner');
-    let bannerText = '';
-
-    if (data.currentShow && data.currentShow.length > 0) {
-        let displayText = "---";
-        // Try to get track title from metadata first
-        let showName = data.current?.metadata?.track_title
-            ? decodeHtmlEntities(data.current.metadata.track_title)
-            : decodeHtmlEntities(data.currentShow[0].name);
-
-        // Remove .mp3 extension if present
-        showName = showName.replace(/\.mp3$/, '');
-
-        if (showName.includes("hosted by")) {
-            const [titlePart, hostPart] = showName.split("hosted by").map(part => part.trim());
-            displayText = `<span style="font-weight:bold">${titlePart}</span><span class="dot">·</span><span style="font-style:italic">hosted by ${hostPart}</span>`;
-        } else {
-            displayText = `<span style="font-weight:bold">${showName}</span>`;
-        }
-
-        let startTime = "--:--";
-        let endTime = "--:--";
-        try {
-            startTime = roundToNearestHalfHourAndAdjustCET(new Date(data.current.starts))
-                .toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
-            endTime = roundToNearestHalfHourAndAdjustCET(new Date(data.current.ends))
-                .toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
-        } catch (e) {
-            console.error('Error processing time information:', e);
-        }
-
-        bannerText = `${displayText}<span class="dot">·</span>${startTime} – ${endTime}`;
-
-        // Add LIVE indicator if it's a livestream
-        if (data.current && data.current.type === 'livestream') {
-            bannerText = `${bannerText} <span class="live-text">LIVE</span>`;
-        }
-
-    } else {
-        bannerText = getRandomMessage();
-    }
-
-    const scrollingText = `
-        <p class="scrolling-text">
-            ${Array(12).fill(`<span>${bannerText}</span>`).join('\n            ')}
-        </p>`;
-    banner.innerHTML = scrollingText;
-}
-
-// Initial fetch and set interval for frequent updates
-fetchLiveInfo();
-setInterval(fetchLiveInfo, 300000); // Update every 5 minutes
-
-// Add message listener at the top level
-window.addEventListener('message', function (event) {
-    if (event.data === 'pause') {
-        $("#jquery_jplayer_1").jPlayer("pause");
-    }
-}); 
+document.addEventListener("DOMContentLoaded", () => {
+    fetchBannerInfo();
+    setInterval(fetchBannerInfo, 300000); // every 5 minutes
+});
